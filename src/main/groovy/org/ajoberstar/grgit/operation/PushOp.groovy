@@ -15,6 +15,9 @@
  */
 package org.ajoberstar.grgit.operation
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 import java.util.concurrent.Callable
 
 import org.ajoberstar.grgit.Repository
@@ -58,6 +61,9 @@ import org.eclipse.jgit.api.errors.GitAPIException
  * @see <a href="http://git-scm.com/docs/git-push">git-push Manual Page</a>
  */
 class PushOp implements Callable<Void> {
+
+  private static final Logger logger = LoggerFactory.getLogger(PushOp)
+
   private final Repository repo
 
   /**
@@ -111,7 +117,12 @@ class PushOp implements Callable<Void> {
     cmd.force = force
     cmd.dryRun = dryRun
     try {
-      cmd.call()
+      def pushResults = cmd.call()
+      pushResults.each {
+        if (it.messages) {
+          logger.warn("push: ${it.messages}")
+        }
+      }
       return null
     } catch (GitAPIException e) {
       throw new GrgitException('Problem pushing to remote.', e)
